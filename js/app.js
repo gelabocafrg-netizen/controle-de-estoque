@@ -84,7 +84,7 @@ async function loadData() {
             ifood_status: p.ifood_status !== false // default to true if undefined
         }));
 
-        updateConnectionStatus(db.isSupabase ? 'Online (Supabase)' : 'Online (Local)', 'success');
+        updateConnectionStatus(db.isSupabase ? 'Online' : 'Online (Local)', 'success');
         render();
         updateStats();
     } catch (error) {
@@ -139,7 +139,7 @@ function render() {
 
 async function loadAdminData() {
     if (!isAdmin || !supabaseClient) return;
-    
+
     // Load Users
     const { data: usersData } = await supabaseClient.from('user_roles').select('*');
     const usersTbody = document.querySelector('#usersTable tbody');
@@ -167,7 +167,7 @@ async function loadAdminData() {
         logsTbody.innerHTML = logsData.map(l => {
             const date = new Date(l.created_at).toLocaleString('pt-BR');
             let detailStr = '';
-            try { detailStr = JSON.stringify(l.details); } catch(e){}
+            try { detailStr = JSON.stringify(l.details); } catch (e) { }
             return `
             <tr>
                 <td style="font-size: 0.85rem; color: var(--text-muted);">${date}</td>
@@ -180,23 +180,23 @@ async function loadAdminData() {
 }
 
 window.updateUserRole = async (userId, newRole) => {
-    if(!supabaseClient) return;
+    if (!supabaseClient) return;
     try {
         await supabaseClient.from('user_roles').update({ role: newRole }).eq('id', userId);
         showToast('Sucesso', 'Nível de acesso atualizado.', 'success');
-    } catch(e) {
+    } catch (e) {
         showToast('Erro', 'Falha ao atualizar papel.', 'error');
     }
 };
 
 window.removeUserAccess = async (userId) => {
-    if(!confirm('Tem certeza? O usuário perderá acesso!')) return;
-    if(!supabaseClient) return;
+    if (!confirm('Tem certeza? O usuário perderá acesso!')) return;
+    if (!supabaseClient) return;
     try {
         await supabaseClient.from('user_roles').delete().eq('id', userId);
         showToast('Sucesso', 'Acesso removido. (O usuário precisa ser deletado no painel Auth principal também)', 'info');
         loadAdminData();
-    } catch(e) {
+    } catch (e) {
         showToast('Erro', 'Falha ao remover.', 'error');
     }
 };
