@@ -39,8 +39,12 @@
             <div id="connectionStatus" class="status-connection">
                 <i class="fas fa-sync fa-spin"></i> Conectando...
             </div>
+            <div id="userProfile" style="display: none; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);"></div>
             <button class="theme-toggle" onclick="toggleTheme()" title="Alternar Tema">
                 <i id="theme-icon" class="fas fa-moon"></i>
+            </button>
+            <button class="theme-toggle" onclick="handleLogout()" title="Sair do Sistema" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                <i class="fas fa-sign-out-alt"></i>
             </button>
         </div>
     </header>
@@ -52,6 +56,9 @@
         </button>
         <button class="tab-btn" id="tab-ifood" onclick="switchTab('ifood')">
             <i class="fas fa-motorcycle"></i> Controle iFood
+        </button>
+        <button class="tab-btn" id="tab-admin" onclick="switchTab('admin')" style="display: none;">
+            <i class="fas fa-shield-alt"></i> Painel Admin
         </button>
     </div>
 
@@ -168,6 +175,48 @@
             <!-- Rendered via JS -->
         </div>
     </div> <!-- /view-ifood -->
+
+    <!-- View: Admin Panel -->
+    <div id="view-admin" class="view-section" style="display: none;">
+        <div class="stats-container">
+            <div class="category-card" style="grid-column: 1 / -1; padding: 24px;">
+                <h3 style="margin-bottom: 16px; color: var(--brand-primary);"><i class="fas fa-users"></i> Gerenciamento de Usuários</h3>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>E-mail</th>
+                                <th>Função (Role)</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rendered via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="category-card" style="grid-column: 1 / -1; padding: 24px;">
+                <h3 style="margin-bottom: 16px; color: var(--brand-primary);"><i class="fas fa-history"></i> Log de Atividades</h3>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="logsTable">
+                        <thead>
+                            <tr>
+                                <th>Data / Hora</th>
+                                <th>Usuário</th>
+                                <th>Ação</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rendered via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div> <!-- /view-admin -->
 
     <!-- Modals Removed (Using Accordions now) -->
 

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Controle de Estoque</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/cocogoose" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo.png">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, var(--bg-main) 50%, var(--brand-primary) 150%);
+        }
+        .login-card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .login-logo {
+            width: 120px;
+            margin-bottom: 16px;
+        }
+        .login-title {
+            font-family: 'Shrikhand', cursive;
+            color: var(--brand-primary);
+            font-size: 1.8rem;
+            margin-bottom: 32px;
+        }
+        .login-form {
+            text-align: left;
+        }
+        .login-btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: 16px;
+            padding: 14px;
+            font-size: 1.1rem;
+        }
+        .error-message {
+            color: var(--danger);
+            background: var(--danger-bg);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-card">
+        <img src="img/logo.png" alt="Gela Boca" class="login-logo" onerror="this.src=''; this.alt='Gela Boca';">
+        <h1 class="login-title">Acesso ao Sistema</h1>
+
+        <div id="errorBox" class="error-message"></div>
+
+        <form id="loginForm" class="login-form" onsubmit="event.preventDefault(); handleLogin();">
+            <div class="form-group">
+                <label for="emailInput">E-mail</label>
+                <input type="email" id="emailInput" class="form-control" placeholder="seu@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="passwordInput">Senha</label>
+                <input type="password" id="passwordInput" class="form-control" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+        </form>
+        
+        <div style="margin-top: 24px; font-size: 0.85rem; color: var(--text-muted);">
+            <p>Ainda não tem acesso? Contate o administrador.</p>
+        </div>
+    </div>
+
+    <!-- DB Auth Logic -->
+    <script type="module">
+        import { db, supabaseClient } from './js/db.js';
+
+        // Check if already logged in
+        async function checkSession() {
+            if (supabaseClient) {
+                const { data } = await supabaseClient.auth.getSession();
+                if (data.session) {
+                    window.location.href = 'index.html'; // redirect to app
+                }
+            }
+        }
+        checkSession();
+
+        window.handleLogin = async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const btn = document.getElementById('loginBtn');
+            const errorBox = document.getElementById('errorBox');
+            
+            errorBox.style.display = 'none';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+            btn.disabled = true;
+
+            try {
+                if (!supabaseClient) throw new Error("Supabase não configurado.");
+                
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+                
+                // Successful login
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error(err);
+                if (err.message.includes("Invalid login credentials")) {
+                    errorBox.textContent = "E-mail ou senha inválidos.";
+                } else if (err.message.includes("Email not confirmed")) {
+                    errorBox.textContent = "Confirme seu e-mail antes de entrar.";
+                } else {
+                    errorBox.textContent = "Erro ao fazer login: " + err.message;
+                }
+                errorBox.style.display = 'block';
+            } finally {
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

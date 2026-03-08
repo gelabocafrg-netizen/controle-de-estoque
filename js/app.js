@@ -1,18 +1,61 @@
-import { db } from './db.js';
+import { db, supabaseClient } from './db.js';
 
 let products = [];
 let currentFilter = 'all';
 let searchTerm = '';
 let searchTermIfood = '';
 let currentEditId = null;
-let currentTab = 'estoque'; // 'estoque' or 'ifood'
+let currentTab = 'estoque'; // 'estoque' or 'ifood' or 'admin'
+let currentUser = null;
+let isAdmin = false;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     setupEventListeners();
-    await loadData();
+    await checkAuthAndLoad();
 });
+
+async function checkAuthAndLoad() {
+    if (!db.isSupabase || !supabaseClient) {
+        // Local mode fallback
+        document.getElementById('userProfile').innerHTML = 'Modo Local';
+        document.getElementById('userProfile').style.display = 'block';
+        await loadData();
+        return;
+    }
+
+    try {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (error || !session) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        currentUser = session.user;
+        document.getElementById('userProfile').innerHTML = `<i class="fas fa-user-circle"></i> ${currentUser.email}`;
+        document.getElementById('userProfile').style.display = 'block';
+
+        // Check if admin
+        const { data: roles } = await supabaseClient.from('user_roles').select('*').eq('id', currentUser.id).single();
+        if (roles && roles.role === 'admin') {
+            isAdmin = true;
+            document.getElementById('tab-admin').style.display = 'flex';
+        }
+
+        await loadData();
+        if (isAdmin) loadAdminData();
+
+    } catch (err) {
+        console.error("Auth check failed:", err);
+        window.location.href = 'login.html';
+    }
+}
+
+window.handleLogout = async () => {
+    if (supabaseClient) await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+};
 
 // Theme Management
 function initTheme() {
@@ -89,10 +132,74 @@ window.switchTab = (tab) => {
 function render() {
     if (currentTab === 'estoque') {
         renderEstoque();
-    } else {
+    } else if (currentTab === 'ifood') {
         renderIfood();
     }
 }
+
+async function loadAdminData() {
+    if (!isAdmin || !supabaseClient) return;
+    
+    // Load Users
+    const { data: usersData } = await supabaseClient.from('user_roles').select('*');
+    const usersTbody = document.querySelector('#usersTable tbody');
+    if (usersData && usersTbody) {
+        usersTbody.innerHTML = usersData.map(u => `
+            <tr>
+                <td>${u.email}</td>
+                <td>
+                    <select onchange="updateUserRole('${u.id}', this.value)" class="form-control" style="width: auto; padding: 4px; font-size: 0.85rem;">
+                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>Usuário</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="removeUserAccess('${u.id}')">Remover Acesso</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Load Logs
+    const { data: logsData } = await supabaseClient.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50);
+    const logsTbody = document.querySelector('#logsTable tbody');
+    if (logsData && logsTbody) {
+        logsTbody.innerHTML = logsData.map(l => {
+            const date = new Date(l.created_at).toLocaleString('pt-BR');
+            let detailStr = '';
+            try { detailStr = JSON.stringify(l.details); } catch(e){}
+            return `
+            <tr>
+                <td style="font-size: 0.85rem; color: var(--text-muted);">${date}</td>
+                <td style="font-weight: 600;">${l.user_email || 'Desconhecido'}</td>
+                <td><span class="status-badge status-ok">${l.action}</span></td>
+                <td style="font-size: 0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title='${detailStr}'>${detailStr}</td>
+            </tr>`
+        }).join('');
+    }
+}
+
+window.updateUserRole = async (userId, newRole) => {
+    if(!supabaseClient) return;
+    try {
+        await supabaseClient.from('user_roles').update({ role: newRole }).eq('id', userId);
+        showToast('Sucesso', 'Nível de acesso atualizado.', 'success');
+    } catch(e) {
+        showToast('Erro', 'Falha ao atualizar papel.', 'error');
+    }
+};
+
+window.removeUserAccess = async (userId) => {
+    if(!confirm('Tem certeza? O usuário perderá acesso!')) return;
+    if(!supabaseClient) return;
+    try {
+        await supabaseClient.from('user_roles').delete().eq('id', userId);
+        showToast('Sucesso', 'Acesso removido. (O usuário precisa ser deletado no painel Auth principal também)', 'info');
+        loadAdminData();
+    } catch(e) {
+        showToast('Erro', 'Falha ao remover.', 'error');
+    }
+};
 
 function renderEstoque() {
     const container = document.getElementById('gridContainer');

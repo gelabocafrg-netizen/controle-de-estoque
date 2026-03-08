@@ -7,7 +7,7 @@
 const SUPABASE_URL = 'https://ickmifzmafbuntqebvhy.supabase.co'; // e.g. 'https://xyzcompany.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_RsMUmI33eJENjoZk0uONmQ_hqufVXDA'; // e.g. 'eyJhbGciOiJIUzI...
 
-let supabaseClient = null;
+export let supabaseClient = null;
 let useLocalStorage = false;
 
 if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
@@ -40,6 +40,24 @@ export const db = {
         }
     },
     
+    async logActivity(action, details) {
+        if (!useLocalStorage && supabaseClient) {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (user) {
+                    await supabaseClient.from('activity_logs').insert([{
+                        user_id: user.id,
+                        user_email: user.email,
+                        action: action,
+                        details: details
+                    }]);
+                }
+            } catch (err) {
+                console.error("Failed to log activity:", err);
+            }
+        }
+    },
+
     async addProduct(product) {
         if (useLocalStorage) {
             const products = await this.getProducts();
@@ -55,6 +73,7 @@ export const db = {
         } else {
             const { data, error } = await supabaseClient.from('products').insert([product]).select();
             if (error) throw error;
+            await this.logActivity('ADDED_PRODUCT', { name: product.name, cat: product.cat });
             return data[0];
         }
     },
@@ -70,6 +89,7 @@ export const db = {
         } else {
             const { error } = await supabaseClient.from('products').update(updates).eq('id', id);
             if (error) throw error;
+            await this.logActivity('EDITED_PRODUCT', { id, updates });
         }
     },
 
@@ -81,6 +101,7 @@ export const db = {
         } else {
             const { error } = await supabaseClient.from('products').delete().eq('id', id);
             if (error) throw error;
+            await this.logActivity('DELETED_PRODUCT', { id });
         }
     }
 };

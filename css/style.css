@@ -640,6 +640,27 @@ input, button, select {
     margin-bottom: 8px;
 }
 
+/* Admin Table */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 0.95rem;
+}
+.admin-table th, .admin-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+.admin-table th {
+    background: var(--bg-main);
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.admin-table tbody tr:hover {
+    background: var(--bg-main);
+}
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
