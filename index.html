@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Produtos | Pro</title>
+    <title>Controle de Produtos | Gela Boca FRG</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
     <link href="https://fonts.cdnfonts.com/css/cocogoose" rel="stylesheet">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
 
@@ -29,199 +29,210 @@
 
 <body>
     <div class="app-container">
-    <!-- Header -->
-    <header class="header">
-        <div class="header-left">
-            <img src="img/logo.png" alt="Gela Boca Logo" class="brand-logo" onerror="this.src=''; this.alt='Gela Boca'; this.className='brand-logo fallback-text';">
-            <h1 class="brand-title">Controle de Estoque</h1>
-        </div>
-        <div class="header-right">
-            <div id="connectionStatus" class="status-connection">
-                <i class="fas fa-sync fa-spin"></i> Conectando...
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <img src="img/logo.png" alt="Gela Boca Logo" class="brand-logo"
+                    onerror="this.src=''; this.alt='Gela Boca'; this.className='brand-logo fallback-text';">
+                <h1 class="brand-title">Controle de Estoque</h1>
             </div>
-            <div id="userProfile" style="display: none; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);"></div>
-            <button class="theme-toggle" onclick="toggleTheme()" title="Alternar Tema">
-                <i id="theme-icon" class="fas fa-moon"></i>
-            </button>
-            <button class="theme-toggle" onclick="handleLogout()" title="Sair do Sistema" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Tab Navigation -->
-    <div class="tab-container">
-        <button class="tab-btn active" id="tab-estoque" onclick="switchTab('estoque')">
-            <i class="fas fa-box"></i> Estoque Geral
-        </button>
-        <button class="tab-btn" id="tab-ifood" onclick="switchTab('ifood')">
-            <i class="fas fa-motorcycle"></i> Controle iFood
-        </button>
-        <button class="tab-btn" id="tab-admin" onclick="switchTab('admin')" style="display: none;">
-            <i class="fas fa-shield-alt"></i> Painel Admin
-        </button>
-    </div>
-
-    <!-- View: Estoque Geral -->
-    <div id="view-estoque" class="view-section active">
-        <!-- Stats -->
-        <div class="stats-container">
-            <div class="stat-card stat-total active" id="stat-total" onclick="filterItems('all')">
-                <div class="stat-icon"><i class="fas fa-boxes"></i></div>
-                <div class="stat-content">
-                    <h3>Total Produtos</h3>
-                    <div class="stat-number" id="stat-total-val">0</div>
+            <div class="header-right">
+                <div id="connectionStatus" class="status-connection">
+                    <i class="fas fa-sync fa-spin"></i> Conectando...
                 </div>
-            </div>
-            <div class="stat-card stat-missing" id="stat-missing" onclick="filterItems('low')">
-                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="stat-content">
-                    <h3>Baixo/Esgotado</h3>
-                    <div class="stat-number" id="stat-missing-val">0</div>
-                </div>
-            </div>
-            <div class="stat-card stat-warning" id="stat-ok" onclick="filterItems('ok')">
-                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);"><i
-                        class="fas fa-check-circle"></i></div>
-                <div class="stat-content">
-                    <h3>Estoque OK</h3>
-                    <div class="stat-number" id="stat-ok-val">0</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Pesquisar categoria ou produto...">
-            </div>
-            <div class="action-buttons">
-                <button class="btn btn-primary" onclick="toggleNewProductAccordion()">
-                    <i class="fas fa-plus"></i> Novo Produto
+                <div id="userProfile"
+                    style="display: none; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);"></div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Alternar Tema">
+                    <i id="theme-icon" class="fas fa-moon"></i>
                 </button>
-                <button class="btn btn-danger btn-pdf" onclick="generatePDF()">
-                    <i class="fas fa-file-pdf"></i> PDF
+                <button class="theme-toggle" onclick="handleLogout()" title="Sair do Sistema"
+                    style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+            <button class="tab-btn active" id="tab-estoque" onclick="switchTab('estoque')">
+                <i class="fas fa-box"></i> Estoque Geral
+            </button>
+            <button class="tab-btn" id="tab-ifood" onclick="switchTab('ifood')">
+                <i class="fas fa-motorcycle"></i> Controle iFood
+            </button>
+            <button class="tab-btn" id="tab-admin" onclick="switchTab('admin')" style="display: none;">
+                <i class="fas fa-shield-alt"></i> Painel Admin
+            </button>
         </div>
 
-        <!-- Accordion for New Product (Hidden by default) -->
-        <div id="newProductAccordion" class="accordion-content" style="max-height: 0;">
-            <div class="accordion-inner">
-                <form id="newProductForm" onsubmit="event.preventDefault(); saveNewProduct();">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="newCatSelect">Categoria</label>
-                            <select id="newCatSelect" class="form-control" onchange="checkNewCat('new')" required></select>
-                            <input type="text" id="newCatInput" class="form-control" placeholder="Nome da nova categoria..." style="display:none; margin-top:10px;">
-                        </div>
-                        <div class="form-group">
-                            <label for="newNameInput">Nome do Produto</label>
-                            <input type="text" id="newNameInput" class="form-control" placeholder="Ex: Mouse sem fio" required>
-                        </div>
+        <!-- View: Estoque Geral -->
+        <div id="view-estoque" class="view-section active">
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="stat-card stat-total active" id="stat-total" onclick="filterItems('all')">
+                    <div class="stat-icon"><i class="fas fa-boxes"></i></div>
+                    <div class="stat-content">
+                        <h3>Total Produtos</h3>
+                        <div class="stat-number" id="stat-total-val">0</div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="newUnitsPerBox">Unidades por Caixa</label>
-                            <input type="number" id="newUnitsPerBox" class="form-control" value="1" min="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newMinBoxes">Caixas Mínimas (Alerta)</label>
-                            <input type="number" id="newMinBoxes" class="form-control" value="1" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newBoxes">Qtd. Caixas Fechadas</label>
-                            <input type="number" id="newBoxes" class="form-control" value="0" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newUnits">Qtd. Caixas Abertas</label>
-                            <input type="number" id="newUnits" class="form-control" value="0" min="0" required>
-                        </div>
+                </div>
+                <div class="stat-card stat-missing" id="stat-missing" onclick="filterItems('low')">
+                    <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-content">
+                        <h3>Baixo/Esgotado</h3>
+                        <div class="stat-number" id="stat-missing-val">0</div>
                     </div>
-                    <div class="modal-footer" style="margin-top: 16px;">
-                        <button type="button" class="btn btn-secondary" onclick="toggleNewProductAccordion()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Salvar Produto</button>
+                </div>
+                <div class="stat-card stat-warning" id="stat-ok" onclick="filterItems('ok')">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);"><i
+                            class="fas fa-check-circle"></i></div>
+                    <div class="stat-content">
+                        <h3>Estoque OK</h3>
+                        <div class="stat-number" id="stat-ok-val">0</div>
                     </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Grid -->
-        <div class="grid-container" id="gridContainer">
-            <!-- Rendered via JS -->
-        </div>
-    </div> <!-- /view-estoque -->
-
-    <!-- View: Controle iFood -->
-    <div id="view-ifood" class="view-section" style="display: none;">
-        <!-- iFood Toolbar -->
-        <div class="toolbar" style="border-color: #ea1d2c; box-shadow: 0 4px 10px rgba(234, 29, 44, 0.1);">
-            <div class="search-box">
-                <i class="fas fa-search" style="color: #ea1d2c;"></i>
-                <input type="text" id="searchInputIfood" placeholder="Pesquisar produto no iFood..."
-                    style="border-color: #f7b4bc;">
-            </div>
-            <div class="ifood-stats">
-                <span class="ifood-badge active"><i class="fas fa-check-circle"></i> <span
-                        id="ifood-active-count">0</span> Disponíveis</span>
-                <span class="ifood-badge paused"><i class="fas fa-pause-circle"></i> <span
-                        id="ifood-paused-count">0</span> Indisponíveis</span>
-            </div>
-        </div>
-
-        <!-- iFood Grid -->
-        <div class="grid-container" id="ifoodContainer">
-            <!-- Rendered via JS -->
-        </div>
-    </div> <!-- /view-ifood -->
-
-    <!-- View: Admin Panel -->
-    <div id="view-admin" class="view-section" style="display: none;">
-        <div class="stats-container">
-            <div class="category-card" style="grid-column: 1 / -1; padding: 24px;">
-                <h3 style="margin-bottom: 16px; color: var(--brand-primary);"><i class="fas fa-users"></i> Gerenciamento de Usuários</h3>
-                <div style="overflow-x: auto;">
-                    <table class="admin-table" id="usersTable">
-                        <thead>
-                            <tr>
-                                <th>E-mail</th>
-                                <th>Função (Role)</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Rendered via JS -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
-            <div class="category-card" style="grid-column: 1 / -1; padding: 24px;">
-                <h3 style="margin-bottom: 16px; color: var(--brand-primary);"><i class="fas fa-history"></i> Log de Atividades</h3>
-                <div style="overflow-x: auto;">
-                    <table class="admin-table" id="logsTable">
-                        <thead>
-                            <tr>
-                                <th>Data / Hora</th>
-                                <th>Usuário</th>
-                                <th>Ação</th>
-                                <th>Detalhes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Rendered via JS -->
-                        </tbody>
-                    </table>
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Pesquisar categoria ou produto...">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="toggleNewProductAccordion()">
+                        <i class="fas fa-plus"></i> Novo Produto
+                    </button>
+                    <button class="btn btn-danger btn-pdf" onclick="generatePDF()">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
                 </div>
             </div>
-        </div>
-    </div> <!-- /view-admin -->
 
-    <!-- Modals Removed (Using Accordions now) -->
+            <!-- Accordion for New Product (Hidden by default) -->
+            <div id="newProductAccordion" class="accordion-content" style="max-height: 0;">
+                <div class="accordion-inner">
+                    <form id="newProductForm" onsubmit="event.preventDefault(); saveNewProduct();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newCatSelect">Categoria</label>
+                                <select id="newCatSelect" class="form-control" onchange="checkNewCat('new')"
+                                    required></select>
+                                <input type="text" id="newCatInput" class="form-control"
+                                    placeholder="Nome da nova categoria..." style="display:none; margin-top:10px;">
+                            </div>
+                            <div class="form-group">
+                                <label for="newNameInput">Nome do Produto</label>
+                                <input type="text" id="newNameInput" class="form-control"
+                                    placeholder="Ex: Mouse sem fio" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newUnitsPerBox">Unidades por Caixa</label>
+                                <input type="number" id="newUnitsPerBox" class="form-control" value="1" min="1"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newMinBoxes">Caixas Mínimas (Alerta)</label>
+                                <input type="number" id="newMinBoxes" class="form-control" value="1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newBoxes">Qtd. Caixas Fechadas</label>
+                                <input type="number" id="newBoxes" class="form-control" value="0" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUnits">Qtd. Caixas Abertas</label>
+                                <input type="number" id="newUnits" class="form-control" value="0" min="0" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="margin-top: 16px;">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="toggleNewProductAccordion()">Cancelar</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Salvar
+                                Produto</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-    <!-- Toasts -->
-    <div id="toastContainer" class="toast-container"></div>
+            <!-- Grid -->
+            <div class="grid-container" id="gridContainer">
+                <!-- Rendered via JS -->
+            </div>
+        </div> <!-- /view-estoque -->
+
+        <!-- View: Controle iFood -->
+        <div id="view-ifood" class="view-section" style="display: none;">
+            <!-- iFood Toolbar -->
+            <div class="toolbar" style="border-color: #ea1d2c; box-shadow: 0 4px 10px rgba(234, 29, 44, 0.1);">
+                <div class="search-box">
+                    <i class="fas fa-search" style="color: #ea1d2c;"></i>
+                    <input type="text" id="searchInputIfood" placeholder="Pesquisar produto no iFood..."
+                        style="border-color: #f7b4bc;">
+                </div>
+                <div class="ifood-stats">
+                    <span class="ifood-badge active"><i class="fas fa-check-circle"></i> <span
+                            id="ifood-active-count">0</span> Disponíveis</span>
+                    <span class="ifood-badge paused"><i class="fas fa-pause-circle"></i> <span
+                            id="ifood-paused-count">0</span> Indisponíveis</span>
+                </div>
+            </div>
+
+            <!-- iFood Grid -->
+            <div class="grid-container" id="ifoodContainer">
+                <!-- Rendered via JS -->
+            </div>
+        </div> <!-- /view-ifood -->
+
+        <!-- View: Admin Panel -->
+        <div id="view-admin" class="view-section" style="display: none;">
+            <div class="stats-container">
+                <div class="category-card" style="grid-column: 1 / -1; padding: 24px;">
+                    <h3 style="margin-bottom: 16px; color: var(--brand-primary);"><i class="fas fa-users"></i>
+                        Gerenciamento de Usuários</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>E-mail</th>
+                                    <th>Função (Role)</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="category-card" style="grid-column: 1 / -1; padding: 24px;">
+                    <h3 style="margin-bottom: 16px; color: var(--brand-primary);"><i class="fas fa-history"></i> Log de
+                        Atividades</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" id="logsTable">
+                            <thead>
+                                <tr>
+                                    <th>Data / Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Ação</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- /view-admin -->
+
+        <!-- Modals Removed (Using Accordions now) -->
+
+        <!-- Toasts -->
+        <div id="toastContainer" class="toast-container"></div>
 
     </div> <!-- /.app-container -->
 
