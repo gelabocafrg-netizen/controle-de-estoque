@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Migrador de Dados</title>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // Supabase SDK
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+        // Configuração Firebase Antiga
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTWaeEa1UlMQubXWUUIB3ESxecIhW22n0",
+            authDomain: "controle-de-produtos-9c21e.firebaseapp.com",
+            projectId: "controle-de-produtos-9c21e",
+            storageBucket: "controle-de-produtos-9c21e.firebasestorage.app",
+            messagingSenderId: "1024270084952",
+            appId: "1:1024270084952:web:79de75c95e5b211f69532d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirebase = getFirestore(app);
+
+        // Configuração Supabase Nova
+        const SUPABASE_URL = 'https://ickmifzmafbuntqebvhy.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_RsMUmI33eJENjoZk0uONmQ_hqufVXDA';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function startMigration() {
+            const statusEl = document.getElementById('status');
+            const logEl = document.getElementById('log');
+            
+            const log = (msg) => {
+                console.log(msg);
+                logEl.innerHTML += `<div>${msg}</div>`;
+            };
+
+            try {
+                // 1. Pegar dados do Firebase
+                log('Conectando ao Firebase...');
+                const docRef = doc(dbFirebase, "sistema_loja", "estoque_principal");
+                const docSnap = await getDoc(docRef);
+                
+                if (!docSnap.exists()) {
+                    log('ERRO: Nenhum dado encontrado no Firebase');
+                    statusEl.innerText = "Erro!";
+                    return;
+                }
+
+                const data = docSnap.data();
+                const firebaseProducts = data.items || [];
+                log(`Encontrados ${firebaseProducts.length} produtos no Firebase.`);
+
+                if (firebaseProducts.length === 0) {
+                    log('Nada para migrar.');
+                    return;
+                }
+
+                // 2. Mapear para o formato do Supabase
+                const supabaseProducts = firebaseProducts.map(fp => {
+                    // Firebase tinha status 'ok' ou 'loja'.
+                    // Vamos converter para quantidade. Se 'ok' = 10, se 'loja' = 0
+                    const isFalta = fp.status === 'loja';
+                    return {
+                        name: fp.name,
+                        cat: fp.cat || 'Sem Categoria',
+                        quantity: isFalta ? 0 : 10, // Default inicial
+                        min_quantity: 5 // Default inicial
+                    };
+                });
+
+                // 3. Inserir no Supabase (fazendo em lotes menores se necessário, aqui mando de uma vez)
+                log('Limpando tabela atual no Supabase (opcional)...');
+                // await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all - dangerous, will skip for safety. Can just insert.
+
+                log('Enviando dados para o Supabase...');
+                const { data: insertedData, error } = await supabase
+                    .from('products')
+                    .insert(supabaseProducts)
+                    .select();
+
+                if (error) {
+                    throw error;
+                }
+
+                log(`SUCESSO! Migrados ${insertedData.length} produtos para o Supabase.`);
+                statusEl.innerText = "Migração Concluída com Sucesso!";
+                statusEl.style.color = "green";
+
+            } catch (error) {
+                log(`ERRO FATAL: ${error.message}`);
+                console.error(error);
+                statusEl.innerText = "Falha na Migração!";
+                statusEl.style.color = "red";
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startMigration);
+
+    </script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .btn { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 5px;}
+        #log { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-family: monospace; min-height: 200px; max-height: 400px; overflow-y: auto;}
+    </style>
+</head>
+<body>
+    <h1>Migração de Dados</h1>
+    <p>Firebase -> Supabase</p>
+    <button id="startBtn" class="btn">Iniciar Migração</button>
+    <h3 id="status">Aguardando...</h3>
+    <div id="log"></div>
+</body>
+</html>
