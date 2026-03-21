@@ -683,11 +683,14 @@ function showToast(title, msg, type = 'success') {
     `;
 
     container.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Remover animações/transições adicionando imediatamente a classe 'show'
+    toast.classList.add('show');
+    
+    // Remover o elemento diretamente após 2 segundos sem esperar transição de saída
     setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+        toast.remove();
+    }, 2000);
 }
 
 // Generate PDF

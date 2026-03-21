@@ -393,8 +393,6 @@ input, button, select {
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
-    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    opacity: 0;
     transition: var(--transition);
 }
 
@@ -1063,4 +1061,14 @@ input:checked ~ .toggle-label {
     .stats-container { grid-template-columns: 1fr; }
     .stat-card { flex-direction: row; text-align: left; justify-content: flex-start; }
     .stat-icon { margin: 0; }
+}
+
+/* 
+  Global Override: Remove all animations and transitions 
+  for maximum system speed as requested. 
+*/
+*, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
 }
