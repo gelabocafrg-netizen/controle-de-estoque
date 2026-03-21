@@ -740,6 +740,54 @@ window.generatePDF = () => {
     showToast('Sucesso', 'PDF gerado com sucesso.', 'success');
 };
 
+// Generate iFood PDF
+window.generateIfoodPDF = () => {
+    if (!window.jspdf) {
+        showToast('Atenção', 'Biblioteca PDF não carregada', 'warning');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFillColor(234, 29, 44); // iFood Red
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255);
+    doc.setFontSize(22);
+    doc.text("RELATÓRIO iFOOD", 105, 25, { align: 'center' });
+
+    doc.setTextColor(50);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 50);
+
+    const tableData = products.sort((a, b) => a.cat.localeCompare(b.cat)).map((p, i) => {
+        let status = p.ifood_status ? 'Disponível' : 'Indisponível';
+        return [i + 1, p.cat, p.name, status];
+    });
+
+    doc.autoTable({
+        startY: 60,
+        head: [['#', 'Categoria', 'Produto', 'Status no iFood']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [234, 29, 44] },
+        didParseCell: function (data) {
+            if (data.column.index === 3 && data.section === 'body') {
+                if (data.cell.raw === 'Indisponível') {
+                    data.cell.styles.textColor = [156, 163, 175];
+                    data.cell.styles.fontStyle = 'italic';
+                } else {
+                    data.cell.styles.textColor = [16, 185, 129];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        }
+    });
+
+    doc.save(`ifood_${new Date().getTime()}.pdf`);
+    showToast('Sucesso', 'PDF iFood gerado.', 'success');
+};
+
 function setupEventListeners() {
     // Other events if needed
 }
