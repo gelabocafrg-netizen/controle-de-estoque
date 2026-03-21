@@ -31,46 +31,60 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, var(--bg-main) 50%, var(--brand-primary) 150%);
+            background: radial-gradient(circle at top right, var(--brand-subtle), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.05), transparent 40%),
+                        var(--bg-main);
+            overflow: hidden;
         }
         .login-card {
-            background: var(--bg-card);
-            padding: 40px;
-            border-radius: var(--radius-lg);
+            background: var(--bg-glass);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            padding: 48px;
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-lg);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
             border: 1px solid var(--border-color);
+            animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .login-logo {
-            width: 120px;
-            margin-bottom: 16px;
+            height: 64px;
+            width: auto;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
         .login-title {
             font-family: 'Shrikhand', cursive;
             color: var(--brand-primary);
-            font-size: 1.8rem;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-transform: none;
+        }
+        .login-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
             margin-bottom: 32px;
+            font-weight: 500;
         }
         .login-form {
             text-align: left;
         }
         .login-btn {
             width: 100%;
-            justify-content: center;
             margin-top: 16px;
-            padding: 14px;
-            font-size: 1.1rem;
         }
         .error-message {
             color: var(--danger);
             background: var(--danger-bg);
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
             font-size: 0.9rem;
+            font-weight: 600;
             display: none;
+            border: 1px solid rgba(239, 68, 68, 0.1);
         }
     </style>
 </head>
@@ -79,7 +93,8 @@
 
     <div class="login-card">
         <img src="img/logo.png" alt="Gela Boca" class="login-logo" onerror="this.src=''; this.alt='Gela Boca';">
-        <h1 class="login-title">Acesso ao Sistema</h1>
+        <h1 class="login-title">Gela Boca</h1>
+        <p class="login-subtitle">Controle de Estoque & iFood</p>
 
         <div id="errorBox" class="error-message"></div>
 

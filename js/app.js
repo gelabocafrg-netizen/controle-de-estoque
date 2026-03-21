@@ -8,6 +8,7 @@ let currentEditId = null;
 let currentTab = 'estoque'; // 'estoque' or 'ifood' or 'admin'
 let currentUser = null;
 let isAdmin = false;
+let expandedCategories = new Set();
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
@@ -120,11 +121,9 @@ window.switchTab = (tab) => {
     // Update views
     document.querySelectorAll('.view-section').forEach(view => {
         view.classList.remove('active');
-        view.style.display = 'none';
     });
     const activeView = document.getElementById(`view-${tab}`);
     activeView.classList.add('active');
-    activeView.style.display = 'block';
 
     render();
 };
@@ -148,13 +147,13 @@ async function loadAdminData() {
             <tr>
                 <td>${u.email}</td>
                 <td>
-                    <select onchange="updateUserRole('${u.id}', this.value)" class="form-control" style="width: auto; padding: 4px; font-size: 0.85rem;">
+                    <select onchange="updateUserRole('${u.id}', this.value)" class="form-control w-auto">
                         <option value="user" ${u.role === 'user' ? 'selected' : ''}>Usuário</option>
                         <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrador</option>
                     </select>
                 </td>
                 <td>
-                    <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="removeUserAccess('${u.id}')">Remover Acesso</button>
+                    <button class="btn btn-danger" onclick="removeUserAccess('${u.id}')">Remover Acesso</button>
                 </td>
             </tr>
         `).join('');
@@ -170,10 +169,10 @@ async function loadAdminData() {
             try { detailStr = JSON.stringify(l.details); } catch (e) { }
             return `
             <tr>
-                <td style="font-size: 0.85rem; color: var(--text-muted);">${date}</td>
-                <td style="font-weight: 600;">${l.user_email || 'Desconhecido'}</td>
+                <td class="text-muted" style="font-size: 0.85rem;">${date}</td>
+                <td class="font-bold">${l.user_email || 'Desconhecido'}</td>
                 <td><span class="status-badge status-ok">${l.action}</span></td>
-                <td style="font-size: 0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title='${detailStr}'>${detailStr}</td>
+                <td style="font-size: 0.85rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title='${detailStr}'>${detailStr}</td>
             </tr>`
         }).join('');
     }
@@ -236,7 +235,7 @@ function renderEstoque() {
         return acc;
     }, {});
 
-    Object.keys(grouped).sort().forEach(category => {
+    Object.keys(grouped).sort((a, b) => a.localeCompare(b)).forEach(category => {
         const items = grouped[category].sort((a, b) => a.name.localeCompare(b.name));
 
         const card = document.createElement('div');
@@ -249,14 +248,14 @@ function renderEstoque() {
             const progressColor = p.boxes <= p.min_boxes ? 'var(--danger)' : 'var(--success)';
 
             return `
-                <li class="item-row">
+                <li class="item-row" id="row-${p.id}">
                     <div class="item-row-header" onclick="toggleRowAccordion('${p.id}')">
                         <div class="item-info">
-                            <span class="item-name">${p.name} <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 5px; color: var(--text-muted);"></i></span>
+                            <span class="item-name">${p.name} <i class="fas fa-chevron-down chevron-icon"></i></span>
                             <div class="item-stock-details">
                                 <span class="qty-badge" title="Caixas Fechadas"><i class="fas fa-box"></i> ${p.boxes} </span>
                                 <span class="qty-badge" title="Caixas Abertas"><i class="fas fa-box-open"></i> ${p.units} </span>
-                                <span class="qty-badge" style="opacity: 0.7;" title="Caixas Mínimas">Min: ${p.min_boxes}cx</span>
+                                <span class="qty-badge text-muted" title="Caixas Mínimas">Min: ${p.min_boxes}cx</span>
                             </div>
                         </div>
                         <div class="actions" onclick="event.stopPropagation()">
@@ -265,8 +264,8 @@ function renderEstoque() {
                         </div>
                     </div>
                     
-                    <!-- Inline Accordion Edit Form (Hidden by default) -->
-                    <div id="accordion-${p.id}" class="accordion-content" style="max-height: 0; margin-top: 0; margin-bottom: 0; width: 100%; border: none; box-shadow: none;">
+                    <!-- Inline Accordion Edit Form -->
+                    <div id="accordion-${p.id}" class="accordion-content">
                         <div class="inline-edit-form">
                             <form onsubmit="event.preventDefault(); saveProduct('${p.id}');">
                                 <div class="form-row">
@@ -297,17 +296,17 @@ function renderEstoque() {
                                     <div>
                                         <label style="display:block; font-size: 0.85rem; font-weight:600; color:var(--text-muted); margin-bottom:5px;">Caixas Fechadas 📦</label>
                                         <div class="stock-control-group">
-                                            <button type="button" class="icon-btn minus" style="background:transparent" onclick="updateStock('${p.id}', 'boxes', -1)"><i class="fas fa-minus"></i></button>
+                                            <button type="button" class="icon-btn minus" onclick="updateStock('${p.id}', 'boxes', -1)"><i class="fas fa-minus"></i></button>
                                             <span class="stock-val" id="val-boxes-${p.id}">${p.boxes}</span>
-                                            <button type="button" class="icon-btn plus" style="background:transparent" onclick="updateStock('${p.id}', 'boxes', 1)"><i class="fas fa-plus"></i></button>
+                                            <button type="button" class="icon-btn plus" onclick="updateStock('${p.id}', 'boxes', 1)"><i class="fas fa-plus"></i></button>
                                         </div>
                                     </div>
                                     <div>
                                         <label style="display:block; font-size: 0.85rem; font-weight:600; color:var(--text-muted); margin-bottom:5px;">Caixas Abertas 🗃️</label>
                                         <div class="stock-control-group">
-                                            <button type="button" class="icon-btn minus" style="background:transparent" onclick="updateStock('${p.id}', 'units', -1)"><i class="fas fa-minus"></i></button>
+                                            <button type="button" class="icon-btn minus" onclick="updateStock('${p.id}', 'units', -1)"><i class="fas fa-minus"></i></button>
                                             <span class="stock-val" id="val-units-${p.id}">${p.units}</span>
-                                            <button type="button" class="icon-btn plus" style="background:transparent" onclick="updateStock('${p.id}', 'units', 1)"><i class="fas fa-plus"></i></button>
+                                            <button type="button" class="icon-btn plus" onclick="updateStock('${p.id}', 'units', 1)"><i class="fas fa-plus"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -323,12 +322,20 @@ function renderEstoque() {
             `;
         }).join('');
 
+        const isCollapsed = !expandedCategories.has(category);
+        const headerClass = isCollapsed ? 'category-header collapsed' : 'category-header';
+        const listClass = isCollapsed ? 'item-list collapsed' : 'item-list';
+        const catId = category.replace(/\s+/g, '-').toLowerCase();
+
         card.innerHTML = `
-            <div class="category-header">
-                <div class="category-title"><i class="fas fa-tag"></i> ${category}</div>
+            <div class="${headerClass}" onclick="toggleCategoryAccordion('${category}')">
+                <div class="category-title">
+                    <i class="fas fa-tag"></i> ${category} 
+                    <i class="fas fa-chevron-down category-chevron"></i>
+                </div>
                 <div class="category-count">${items.length} itens</div>
             </div>
-            <ul class="item-list">${itemsHtml}</ul>
+            <ul class="${listClass}" id="cat-list-${catId}">${itemsHtml}</ul>
         `;
         container.appendChild(card);
     });
@@ -360,12 +367,11 @@ function renderIfood() {
         return acc;
     }, {});
 
-    Object.keys(grouped).sort().forEach(category => {
+    Object.keys(grouped).sort((a, b) => a.localeCompare(b)).forEach(category => {
         const items = grouped[category].sort((a, b) => a.name.localeCompare(b.name));
 
         const card = document.createElement('div');
         card.className = 'category-card';
-        card.style.opacity = 1;
 
         let itemsHtml = items.map(p => {
             const isChecked = p.ifood_status ? 'checked' : '';
@@ -382,18 +388,26 @@ function renderIfood() {
                             <input type="checkbox" ${isChecked} onchange="toggleIfood('${p.id}', this.checked)">
                             <span class="slider"></span>
                         </label>
-                        <span class="toggle-label" style="width: 100px; text-align: right;">${statusLabel}</span>
+                        <span class="toggle-label">${statusLabel}</span>
                     </div>
                 </li>
             `;
         }).join('');
 
+        const isCollapsed = !expandedCategories.has(category);
+        const headerClass = isCollapsed ? 'category-header collapsed' : 'category-header';
+        const listClass = isCollapsed ? 'item-list collapsed' : 'item-list';
+        const catId = category.replace(/\s+/g, '-').toLowerCase();
+
         card.innerHTML = `
-            <div class="category-header">
-                <div class="category-title"><i class="fas fa-tag"></i> ${category}</div>
+            <div class="${headerClass}" onclick="toggleCategoryAccordion('${category}')">
+                <div class="category-title">
+                    <i class="fas fa-tag"></i> ${category} 
+                    <i class="fas fa-chevron-down category-chevron"></i>
+                </div>
                 <div class="category-count">${items.length} itens</div>
             </div>
-            <ul class="item-list">${itemsHtml}</ul>
+            <ul class="${listClass}" id="cat-list-${catId}-ifood">${itemsHtml}</ul>
         `;
         container.appendChild(card);
     });
@@ -522,6 +536,23 @@ document.getElementById('searchInputIfood').addEventListener('input', (e) => {
 });
 
 // Accordion Logic
+window.toggleCategoryAccordion = (category) => {
+    const catId = category.replace(/\s+/g, '-').toLowerCase();
+    const suffix = currentTab === 'ifood' ? '-ifood' : '';
+    const list = document.getElementById(`cat-list-${catId}${suffix}`);
+    if (!list) return;
+
+    const header = list.previousElementSibling;
+    const isNowCollapsed = list.classList.toggle('collapsed');
+    header.classList.toggle('collapsed', isNowCollapsed);
+
+    if (isNowCollapsed) {
+        expandedCategories.delete(category);
+    } else {
+        expandedCategories.add(category);
+    }
+};
+
 window.toggleNewProductAccordion = () => {
     const accordion = document.getElementById('newProductAccordion');
     if (accordion.style.maxHeight === '0px' || accordion.style.maxHeight === '') {
@@ -535,10 +566,14 @@ window.toggleNewProductAccordion = () => {
 
 window.toggleRowAccordion = (id) => {
     const accordion = document.getElementById(`accordion-${id}`);
+    const row = document.getElementById(`row-${id}`);
+    
     if (accordion.style.maxHeight === '0px' || accordion.style.maxHeight === '') {
-        accordion.style.maxHeight = '400px';
+        accordion.style.maxHeight = '500px';
+        if (row) row.classList.add('active');
     } else {
         accordion.style.maxHeight = '0px';
+        if (row) row.classList.remove('active');
     }
 };
 
@@ -556,7 +591,7 @@ window.checkNewCat = (prefix) => {
 };
 
 function populateCategories(selectId) {
-    const categories = [...new Set(products.map(p => p.cat))].sort();
+    const categories = [...new Set(products.map(p => p.cat))].sort((a, b) => a.localeCompare(b));
     const select = document.getElementById(selectId);
     if (!select) return;
 
