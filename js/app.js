@@ -558,7 +558,7 @@ window.toggleNewProductAccordion = () => {
     if (accordion.style.maxHeight === '0px' || accordion.style.maxHeight === '') {
         populateCategories('newCatSelect');
         document.getElementById('newProductForm').reset();
-        accordion.style.maxHeight = '500px';
+        accordion.style.maxHeight = '1500px';
     } else {
         accordion.style.maxHeight = '0px';
     }
@@ -569,7 +569,7 @@ window.toggleRowAccordion = (id) => {
     const row = document.getElementById(`row-${id}`);
     
     if (accordion.style.maxHeight === '0px' || accordion.style.maxHeight === '') {
-        accordion.style.maxHeight = '500px';
+        accordion.style.maxHeight = '1500px';
         if (row) row.classList.add('active');
     } else {
         accordion.style.maxHeight = '0px';
